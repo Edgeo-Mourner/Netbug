@@ -29,24 +29,61 @@ Promise
     .then(html=>{
 		createDOM(html[0]);
 	});
-function analyzeTag
-function createDOM(html){
-	html=html.replace(/>[\n\r\t ]*</g,'<').split(/</g);
+function formatHTML(html){
+	html=html.toLowerCase().replace(/>[\n\r\t ]*</g,'<');
+	html=html.toLowerCase().replace(/\'/g,'"');
+	html=html.toLowerCase().replace(/\s+=\s/g,'=');
+	html=html.split(/</g);
 	html.shift();
-	let stack=[];
+	return html;
+}
+function getValueInArray(thing,keys=[]){
+	let temp=key=>{
+		if(Array.isArray(thing)&&key){
+			return key<thing.length?thing[key]:undefined;
+		}else{
+			return thing;
+		}
+	}
+	/////////////////////////
+	return Array.isArray(keys)?keys.forEach(temp):temp(keys);
+}
+function analyzeTag(tag){
+	let info={};
+	info.tagName=tag.match(/\w+/i)[0];
+	info.text=getValueInArray(tag.match(/>(\S+)/),[1]);
+	info.text=getValueInArray(tag.match(/(\S+)=(\S+)/),[1,2]);
+	debug(info.text);
+	return info;
+}
+function getGene(){
+	return {
+		tagName:null,
+		text:null,
+		childNode:null,
+		parentNode:null,
+		prevNode:null,
+		nextNode:null,
+		attribute:[]
+	}
+}
+function createDOM(html){
+	html=formatHTML(html);
+	let dom=null,node=null,stack=[],temp=[];
+	debug(html);
 	html.forEach((tag)=>{
-		let tagName=tag.match(/\w+/i)[0].toLowerCase();
-		if(/^\//.test(tagName)){
+		let tagInfo=analyzeTag(tag);
+		// debug(tagInfo);
+		if(/^\//.test(tagInfo.tagName)){
 			//标签出栈
 			stack.pop();
-			debug('出：'+tagName);
-		}else if(['doctype','br','hr','input','img','link','meta','param'].includes(tagName)){
+		}else if(['doctype','br','hr','input','img','link','meta','param'].includes(tagInfo.tagName)){
 			//直接分析空元素
-			debug('单：'+tagName);
 		}else{
 			//标签入栈
-			stack.push(tagName);
-			debug('入：'+tagName);
+			dom=getGene();
+			dom.tagName=tagInfo.tagName;
+			stack.push(tagInfo.tagName);
 		}
 	});
 }

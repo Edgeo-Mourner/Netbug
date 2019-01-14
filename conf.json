@@ -1,0 +1,8 @@
+{
+	"power":5,
+	"single":"false",
+	"silk":[{
+		"url":"http://localhost/a.html",
+		"info":"22"
+	}]
+}
